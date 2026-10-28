@@ -1,0 +1,156 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Azatech Online Shop Order Management API",
+    "version": "1.0.0",
+    "description": "Dokumentasi RESTful API untuk Sistem Online Shop (Order Management) - PT Laksmada Aza Simetri"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "data": { "type": "object" },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": { "type": "integer" },
+              "per_page": { "type": "integer" },
+              "total": { "type": "integer" },
+              "total_pages": { "type": "integer" }
+            }
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "example": "admin@azatech.id" },
+          "password": { "type": "string", "example": "admin123" }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "product_code": { "type": "string", "example": "P0001" },
+          "product_name": { "type": "string", "example": "Hydrococo 150ml" },
+          "stock": { "type": "integer", "example": 25 },
+          "price": { "type": "number", "example": 12000 }
+        }
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "required": ["customer_id", "items"],
+        "properties": {
+          "customer_id": { "type": "string", "format": "uuid" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["product_id", "quantity"],
+              "properties": {
+                "product_id": { "type": "integer", "example": 1 },
+                "quantity": { "type": "integer", "example": 2 }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login Admin User",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login berhasil mengembalikan token" },
+          "401": { "description": "Email atau password salah" }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get Current User Profile",
+        "security": [{ "BearerAuth": [] }],
+        "tags": ["Authentication"],
+        "responses": {
+          "200": { "description": "Profil pengguna" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "summary": "List Produk dengan Pagination, Filter & Sort",
+        "security": [{ "BearerAuth": [] }],
+        "tags": ["Products"],
+        "responses": { "200": { "description": "List data produk" } }
+      },
+      "post": {
+        "summary": "Tambah Produk Baru",
+        "security": [{ "BearerAuth": [] }],
+        "tags": ["Products"],
+        "responses": { "201": { "description": "Produk berhasil dibuat" } }
+      }
+    },
+    "/api/orders": {
+      "get": {
+        "summary": "Riwayat Order",
+        "security": [{ "BearerAuth": [] }],
+        "tags": ["Orders"],
+        "responses": { "200": { "description": "List order" } }
+      },
+      "post": {
+        "summary": "Buat Order Penjualan Baru",
+        "security": [{ "BearerAuth": [] }],
+        "tags": ["Orders"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateOrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Order berhasil dibuat" },
+          "422": { "description": "Stok tidak mencukupi atau validasi gagal" }
+        }
+      }
+    },
+    "/api/dashboard/summary": {
+      "get": {
+        "summary": "Ringkasan Statistik Dashboard",
+        "security": [{ "BearerAuth": [] }],
+        "tags": ["Dashboard"],
+        "responses": { "200": { "description": "Data statistik dashboard" } }
+      }
+    }
+  }
+}
